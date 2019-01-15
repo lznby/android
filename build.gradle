@@ -1,0 +1,58 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.5.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'war'
+
+group = 'com.lznbys'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    providedRuntime
+}
+
+dependencies {
+    // for web --
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    // for jdbc -- driver
+    implementation('org.springframework.boot:spring-boot-starter-jdbc')
+    // for mysql -- db
+    implementation('mysql:mysql-connector-java:5.1.46')
+    // for swagger2 -- api document
+    implementation('io.springfox:springfox-swagger2:2.2.2')
+    // for swagger2 -- swagger2 ui
+    implementation('io.springfox:springfox-swagger-ui:2.2.2')
+    // for mybatis -- sql
+    implementation('org.mybatis:mybatis:3.4.6')
+    // for mybatis -- sql
+    implementation('tk.mybatis:mapper-spring-boot-starter:2.0.4')
+    // for gson -- json
+    implementation ('com.google.code.gson:gson:2.8.5')
+
+    // AliOss
+    implementation('com.aliyun:aliyun-java-sdk-sts:3.0.0')
+    implementation('com.aliyun:aliyun-java-sdk-core:4.1.2')
+    implementation('com.aliyun.oss:aliyun-sdk-oss:3.4.0')
+
+    // for tomcat -- service
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat')
+    // for test
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
