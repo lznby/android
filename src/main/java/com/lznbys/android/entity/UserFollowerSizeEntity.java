@@ -3,7 +3,7 @@ package com.lznbys.android.entity;
 /**
  * 用户粉丝数、关注数
  * 对应表格:无
- * 使用说明:数据为对app_user_follower_info的统计
+ * 使用说明:数据为对app_user_follower_info的统计e
  */
 public class UserFollowerSizeEntity {
     /**
@@ -14,6 +14,11 @@ public class UserFollowerSizeEntity {
      * 粉丝数
      */
     private int followerSize;
+
+    /**
+     * 关注主题数
+     */
+    private int followThemeSize;
 
     public UserFollowerSizeEntity() {
     }
@@ -37,5 +42,13 @@ public class UserFollowerSizeEntity {
 
     public void setFollowerSize(int followerSize) {
         this.followerSize = followerSize;
+    }
+
+    public int getFollowThemeSize() {
+        return followThemeSize;
+    }
+
+    public void setFollowThemeSize(int followThemeSize) {
+        this.followThemeSize = followThemeSize;
     }
 }

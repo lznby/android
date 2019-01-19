@@ -3,6 +3,7 @@ package com.lznbys.android.controller;
 import com.lznbys.android.base.BaseResponseEntity;
 import com.lznbys.android.base.ResponseCode;
 import com.lznbys.android.entity.*;
+import com.lznbys.android.service.ThemeService;
 import com.lznbys.android.service.UserBaseInfoService;
 import com.lznbys.android.service.UserFollowerService;
 import org.apache.ibatis.annotations.Param;
@@ -23,6 +24,8 @@ public class UserFollowerController {
     private UserFollowerService userFollowerService;
     @Autowired
     private UserBaseInfoService userBaseInfoService;
+    @Autowired
+    private ThemeService themeService;
 
     /**
      * 添加关注接口
@@ -106,13 +109,10 @@ public class UserFollowerController {
     public BaseResponseEntity<List<UserFollowInfoEntity>> getFollow(@RequestHeader("userCookies") String userCookies,
                                                                     @Param("userId") String userId,
                                                                     @Param("queryId") String queryId) {
-        System.out.print("请求参数:" + "userCookies:"+userCookies+"; userId:"+userId+"; queryId:"+queryId+";");
         List<UserFollowInfoEntity> userFollowSearch = userFollowerService.findAllUserFollowByUserId(userId,queryId);
         if (userFollowSearch != null) {
-            System.out.print("请求成功了");
             return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,userFollowSearch);
         } else {
-            System.out.print("请求失败了");
             return new BaseResponseEntity<>(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);
         }
     }
@@ -136,15 +136,17 @@ public class UserFollowerController {
     }
 
     /**
-     * 通过用户userId查询用户粉丝及关注数
+     * 通过用户userId查询用户粉丝、关注数、及主题关注数
      */
     @RequestMapping(method = RequestMethod.GET, value = "/getUserFollowerSize")
     public BaseResponseEntity<UserFollowerSizeEntity> getUserFollowerSize(@Param("userId") String userId) {
         UserFollowerSizeEntity userFollowerSizeSearch = userFollowerService.getFollowerSizeById(userId);
         if (userFollowerSizeSearch!=null) {
+            List<ThemeSubEntity> themeSubEntities = themeService.findAllThemeSubByUserId(userId);
+            userFollowerSizeSearch.setFollowThemeSize(themeSubEntities.size());
             return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,userFollowerSizeSearch);
         } else {
-            return new BaseResponseEntity<>(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.SUCCESS);
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);
         }
     }
 

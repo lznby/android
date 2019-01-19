@@ -75,4 +75,13 @@ public interface ThemeService {
      */
     List<ThemeEntity> findAllTheme();
 
+    /**
+     * 根据主题名称搜索主题详情
+     *
+     * @param themeName     查询的主题名称
+     * @return
+     */
+    ThemeEntity findThemeByName(String themeName);
+
+
 }

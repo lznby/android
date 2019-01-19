@@ -28,16 +28,19 @@ public class ThemeServiceImpl implements ThemeService {
     }
 
     /**
+     * 新建主题
      *
      * @param themeEntity  新建主题对象
      * @return
      */
     @Override
     public boolean createTheme(ThemeEntity themeEntity) {
-        return false;
+        int isInsert = themeDao.insertTheme(themeEntity);
+        return isInsert > 0;
     }
 
     /**
+     * 更新主题关注数
      *
      * @param themeId
      * @param subCount
@@ -45,30 +48,35 @@ public class ThemeServiceImpl implements ThemeService {
      */
     @Override
     public boolean updateThemeCount(String themeId, String subCount) {
-        return false;
+        int isUpdate = themeDao.updateThemeSubCount(themeId,subCount);
+        return isUpdate > 0;
     }
 
     /**
+     * 根据主题编号查询主题详情
      *
      * @param themeId   被查询主题Id
      * @return
      */
     @Override
     public ThemeEntity findThemeById(String themeId) {
-        return null;
+        return themeDao.findThemeById(themeId);
     }
 
     /**
+     * 添加主题订阅记录
      *
      * @param themeSubEntity    订阅主题记录
      * @return
      */
     @Override
     public boolean insertThemeSub(ThemeSubEntity themeSubEntity) {
-        return false;
+        int isInsert = themeDao.insertThemeSub(themeSubEntity);
+        return isInsert > 0;
     }
 
     /**
+     * 取消主题订阅
      *
      * @param themeId           取消订阅的编号
      * @param userId            取消订阅者编号
@@ -76,10 +84,12 @@ public class ThemeServiceImpl implements ThemeService {
      */
     @Override
     public boolean deleteThemeSub(String themeId, String userId) {
-        return false;
+        int isDelete = themeDao.deleteThemeSub(themeId, userId);
+        return isDelete > 0;
     }
 
     /**
+     * 查询是否订阅主题
      *
      * @param themeId       被查询的主题Id
      * @param userId        被查询者用户Id
@@ -87,25 +97,38 @@ public class ThemeServiceImpl implements ThemeService {
      */
     @Override
     public ThemeSubEntity checkThemeSubByUserId(String themeId, String userId) {
-        return null;
+        return themeDao.checkThemeSubByUserId(themeId, userId);
     }
 
     /**
+     * 根据用户Id查询所有订阅记录
      *
      * @param userId           被查询者Id
      * @return
      */
     @Override
     public List<ThemeSubEntity> findAllThemeSubByUserId(String userId) {
-        return null;
+        return themeDao.findAllThemeSubByUserId(userId);
     }
 
     /**
+     * 查询所有主题详情
      *
      * @return
      */
     @Override
     public List<ThemeEntity> findAllTheme() {
-        return null;
+        return themeDao.findAllTheme();
+    }
+
+    /**
+     * 根据主题名称查询主题详情
+     *
+     * @param themeName     查询的主题名称
+     * @return
+     */
+    @Override
+    public ThemeEntity findThemeByName(String themeName) {
+        return themeDao.findThemeByName(themeName);
     }
 }

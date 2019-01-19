@@ -20,8 +20,8 @@ public interface ThemeDao {
      * @param themeEntity       主题对象
      * @return
      */
-    @Insert("INSERT INTO app_theme (themeId,time,themeName,themeNote,themeImage,fileAttribution,subCount) " +
-            "VALUES (#{themeEntity.themeId},#{themeEntity.time},#{themeEntity.themeName},#{themeEntity.themeNote},#{themeEntity.themeImage},#{themeEntity.fileAttribution},#{themeEntity.subCount})")
+    @Insert("INSERT INTO app_theme (themeId,time,themeName,themeNote,themeImage,themeHeaderImage,subCount) " +
+            "VALUES (#{themeEntity.themeId},#{themeEntity.time},#{themeEntity.themeName},#{themeEntity.themeNote},#{themeEntity.themeImage},#{themeEntity.themeHeaderImage},#{themeEntity.subCount})")
     Integer insertTheme(@Param("themeEntity") ThemeEntity themeEntity);
 
     /**
@@ -45,6 +45,16 @@ public interface ThemeDao {
     @Select("SELECT * FROM app_theme WHERE app_theme.themeId = #{themeId}")
     @ResultType(ThemeEntity.class)
     ThemeEntity findThemeById(@Param("themeId") String themeId);
+
+    /**
+     * 根据主题名称查询主题详情
+     *
+     * @param themeName
+     * @return
+     */
+    @Select("SELECT * FROM app_theme WHERE app_theme.themeName = #{themeName}")
+    @ResultType(ThemeEntity.class)
+    ThemeEntity findThemeByName(@Param("themeName") String themeName);
 
     /**
      * 查询某人所有订阅记录

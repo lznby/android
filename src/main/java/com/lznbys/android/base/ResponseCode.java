@@ -61,6 +61,11 @@ public interface ResponseCode {
     String HAVENT_THEME = "主题记录失败";
 
     /**
+     * 主题名已被占用
+     */
+    String THEME_NAME_HAVE = "主题名已被占用";
+
+    /**
      * 文件上传异常
      */
     String FILE_UPLOAD_ERROR = "文件上传异常";
@@ -103,10 +108,20 @@ public interface ResponseCode {
     /**
      * 已经关注
      */
-    String ALREADY_FOLLOW = "该用户已将在您的关注列表中！";
+    String ALREADY_FOLLOW = "当前对象已将在您的关注列表中！";
 
     /**
      * 没有关注
      */
-    String NOT_FOLLOWER = "该用户不在关注列表当中";
+    String NOT_FOLLOWER = "当前对象未在关注列表当中";
+
+    /**
+     * 创建失败
+     */
+    String CREATE_FILE = "创建失败";
+
+    /**
+     * 主题不存在
+     */
+    String THEME_HAVE_ONT = "主题不存在";
 }
