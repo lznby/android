@@ -1,5 +1,6 @@
 package com.lznbys.android.controller;
 
+import com.google.gson.Gson;
 import com.lznbys.android.base.BaseResponseEntity;
 import com.lznbys.android.base.ResponseCode;
 import com.lznbys.android.entity.ThemeEntity;
@@ -10,11 +11,11 @@ import com.lznbys.android.service.UserBaseInfoService;
 import com.lznbys.android.utlis.TimeUtils;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.HeaderParam;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class ThemeController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/createTheme")
-    public BaseResponseEntity createTheme(@HeaderParam("userCookies") String userCookies,
+    public BaseResponseEntity createTheme(@RequestHeader("userCookies") String userCookies,
                                           @Param("themeName") String themeName,
                                           @Param("themeNote") String themeNote,
                                           @Param("themeImage") String themeImage,
@@ -89,7 +90,7 @@ public class ThemeController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/followTheme")
-    public BaseResponseEntity followTheme(@HeaderParam("userCookies") String userCookies,
+    public BaseResponseEntity followTheme(@RequestHeader("userCookies") String userCookies,
                                           @Param("themeId") String themeId) {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         String uploadTime = TimeUtils.getNowTime();
@@ -133,7 +134,7 @@ public class ThemeController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/unfollowTheme")
-    public BaseResponseEntity unfollowTheme(@HeaderParam("userCookies") String userCookies,
+    public BaseResponseEntity unfollowTheme(@RequestHeader("userCookies") String userCookies,
                                             @Param("themeId") String themeId) {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         // 检查关注主题是否存在
@@ -165,7 +166,7 @@ public class ThemeController {
      * @return
      */
     @RequestMapping(method = RequestMethod.GET, value = "/findAllFlowThemeInfo")
-    public BaseResponseEntity<List<ThemeEntity>> findAllFlowThemeInfo(@HeaderParam("userCookies") String userCookies,
+    public BaseResponseEntity<List<ThemeEntity>> findAllFlowThemeInfo(@RequestHeader("userCookies") String userCookies,
                                                    @Param("userId") String userId) {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         if (userBaseInfoEntity != null) {
@@ -175,9 +176,9 @@ public class ThemeController {
                 ThemeEntity themeEntity = themeService.findThemeById(single.getThemeId());
                 ThemeSubEntity isFollow = themeService.checkThemeSubByUserId(single.getThemeId(),userBaseInfoEntity.getUserId());
                 if (isFollow != null) {
-                    themeEntity.setFollow(true);
+                    themeEntity.setFollowed(true);
                 } else {
-                    themeEntity.setFollow(false);
+                    themeEntity.setFollowed(false);
                 }
                 themeEntities.add(themeEntity);
             }
@@ -187,7 +188,7 @@ public class ThemeController {
             List<ThemeEntity> themeEntities = new ArrayList<>();
             for (ThemeSubEntity single : themeSubEntities) {
                 ThemeEntity themeEntity = themeService.findThemeById(single.getThemeId());
-                themeEntity.setFollow(false);
+                themeEntity.setFollowed(false);
                 themeEntities.add(themeEntity);
             }
             return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,themeEntities);
@@ -201,17 +202,18 @@ public class ThemeController {
      * @return
      */
     @RequestMapping(method = RequestMethod.GET, value = "/findAllTheme")
-    public BaseResponseEntity<List<ThemeEntity>> findAllTheme(@HeaderParam("userCookies") String userCookies) {
+    public BaseResponseEntity<List<ThemeEntity>> findAllTheme(@RequestHeader("userCookies") String userCookies) {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         if (userBaseInfoEntity != null) {
             List<ThemeEntity> themeSearch = themeService.findAllTheme();
-            List<ThemeEntity> themeEntities = themeService.findAllTheme();
+            List<ThemeEntity> themeEntities = new ArrayList<>();
             for (ThemeEntity single: themeSearch) {
                 ThemeSubEntity themeSubEntity = themeService.checkThemeSubByUserId(single.getThemeId(),userBaseInfoEntity.getUserId());
                 if (themeSubEntity != null) {
-                    single.setFollow(true);
+                    single.setFollowed(true);
                     themeEntities.add(single);
                 } else {
+                    single.setFollowed(false);
                     themeEntities.add(single);
                 }
             }

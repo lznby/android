@@ -83,8 +83,8 @@ public interface ThemeDao {
      * @param themeSubEntity    主题订阅关系对象
      * @return
      */
-    @Insert("INSERT INTO app_theme_sub (themeSubId,themeId,userId,time,app_theme_subcol) " +
-            "VALUES (#{themeSubEntity.themeSubId},#{themeSubEntity.themeId},#{themeSubEntity.userId},#{themeSubEntity.time},#{themeSubEntity.app_theme_subcol})")
+    @Insert("INSERT INTO app_theme_sub (themeSubId,themeId,userId,time) " +
+            "VALUES (#{themeSubEntity.themeSubId},#{themeSubEntity.themeId},#{themeSubEntity.userId},#{themeSubEntity.time})")
     Integer insertThemeSub(@Param("themeSubEntity") ThemeSubEntity themeSubEntity);
 
     /**
