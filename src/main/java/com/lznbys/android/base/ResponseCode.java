@@ -124,4 +124,14 @@ public interface ResponseCode {
      * 主题不存在
      */
     String THEME_HAVE_ONT = "主题不存在";
+
+    /**
+     * 资讯不存在
+     */
+    String ARTICLE_HAVE_NOT = "资讯不存在";
+
+    /**
+     * 请求失败,请稍后重试
+     */
+    String FIAL_WAIT_A_MINI = "请求失败,请稍后重试!";
 }

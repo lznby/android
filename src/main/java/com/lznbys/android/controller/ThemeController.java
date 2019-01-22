@@ -1,6 +1,5 @@
 package com.lznbys.android.controller;
 
-import com.google.gson.Gson;
 import com.lznbys.android.base.BaseResponseEntity;
 import com.lznbys.android.base.ResponseCode;
 import com.lznbys.android.entity.ThemeEntity;
@@ -8,6 +7,7 @@ import com.lznbys.android.entity.ThemeSubEntity;
 import com.lznbys.android.entity.UserBaseInfoEntity;
 import com.lznbys.android.service.ThemeService;
 import com.lznbys.android.service.UserBaseInfoService;
+import com.lznbys.android.utlis.FileUtils;
 import com.lznbys.android.utlis.TimeUtils;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +62,8 @@ public class ThemeController {
                 themeEntity.setThemeHeaderImage(fileAttribution);
                 themeEntity.setSubCount(0);
                 themeEntity.setThemeId(themeId);
-                themeEntity.setThemeImage(themeImage);
-                themeEntity.setThemeHeaderImage(themeHeaderImage);
+                themeEntity.setThemeImage(FileUtils.getOssFilePath(themeImage));
+                themeEntity.setThemeHeaderImage(FileUtils.getOssFilePath(themeHeaderImage));
                 themeEntity.setThemeName(themeName);
                 themeEntity.setThemeNote(themeNote);
                 boolean isInsert = themeService.createTheme(themeEntity);

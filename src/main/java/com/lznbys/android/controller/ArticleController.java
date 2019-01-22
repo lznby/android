@@ -177,24 +177,26 @@ public class ArticleController {
     @RequestMapping(method = RequestMethod.GET, value = "/getArticleByFileAttribution")
     public BaseResponseEntity<List<ArticleAllInfoEntity>> getArticleByFileAttribution(@RequestHeader("userCookies") String userCookies,
                                                                                       @Param("fileAttribution") String fileAttribution) {
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         List<ArticleEntity> allArticles = new ArrayList<>();
         allArticles.add(articleService.findArticleByFileAttribution(fileAttribution));
         List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
-        getArticleAllInfo(allArticles, articleAllInfoEntities);
+        getArticleAllInfo(allArticles, articleAllInfoEntities,userBaseInfoEntity);
         return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
 
 
     /**
-     * 获取所有资讯资讯
+     * 获取所有资讯资讯(暂时充当-发现资讯的接口)
      *
      * @return
      */
     @RequestMapping(method = RequestMethod.GET, value = "/getAllArticle")
-    public BaseResponseEntity<List<ArticleAllInfoEntity>> getAllArticle() {
+    public BaseResponseEntity<List<ArticleAllInfoEntity>> getAllArticle(@RequestHeader("userCookies") String userCookies) {
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         List<ArticleEntity> allArticles = articleService.findAllArticle();
         List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
-        getArticleAllInfo(allArticles, articleAllInfoEntities);
+        getArticleAllInfo(allArticles, articleAllInfoEntities,userBaseInfoEntity);
         return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
 
@@ -287,6 +289,83 @@ public class ArticleController {
 
     }
 
+
+
+
+    /************************************************资讯统计**************************************************/
+
+    /**
+     * 资讯收藏
+     *
+     * @param userCookies           用户Cookies
+     * @param fileAttribution       资讯编号
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/articleSub")
+    public BaseResponseEntity articleSub(@RequestHeader("userCookies") String userCookies,
+                                         @Param("fileAttribution") String fileAttribution) {
+        // 1.判断用户是否登录
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+        if (userBaseInfoEntity != null) {
+            // 2.判断资讯是否存在
+            ArticleEntity articleEntity = articleService.findArticleByFileAttribution(fileAttribution);
+            if (articleEntity != null) {
+                String articleSubId = UUID.randomUUID().toString();
+                String createTime = TimeUtils.getNowTime();
+                ArticleSubEntity articleSubEntity = new ArticleSubEntity();
+                articleSubEntity.setArticleSubId(articleSubId);
+                articleSubEntity.setFileAttribution(fileAttribution);
+                articleSubEntity.setUserId(userBaseInfoEntity.getUserId());
+                articleSubEntity.setTime(createTime);
+                boolean isInsert = articleService.insertArticleSub(articleSubEntity);
+                if (isInsert) {
+                    // 3.更新资讯统计数值
+                    int readCount = Integer.valueOf(articleEntity.getLoveCount())+1;
+                    articleService.updateArticleSubCount(fileAttribution,articleEntity.getReadCount(),String.valueOf(readCount),articleEntity.getCommentCount());
+                    return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
+                } else {
+                    return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI,ResponseCode.FAIL);
+                }
+            } else {
+                return new BaseResponseEntity(ResponseCode.ARTICLE_HAVE_NOT, ResponseCode.FAIL);
+            }
+        } else {
+            return new BaseResponseEntity(ResponseCode.COOKIES_OUT_TIME, ResponseCode.UN_LOGIN);
+        }
+    }
+
+
+    /**
+     * 取消资讯收藏
+     *
+     * @param userCookies           用户Cookies
+     * @param fileAttribution       资讯编号
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/articleUnSub")
+    public BaseResponseEntity articleUnSub(@RequestHeader("userCookies") String userCookies,
+                                         @Param("fileAttribution") String fileAttribution) {
+        // 1.判断用户是否登录
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+        if (userBaseInfoEntity != null) {
+            // 2.删除资讯订阅信息
+            boolean isDelete = articleService.deleteArticleSub(userBaseInfoEntity.getUserId(),fileAttribution);
+            if (isDelete) {
+                ArticleEntity articleEntity = articleService.findArticleByFileAttribution(fileAttribution);
+                int readCount = Integer.valueOf(articleEntity.getLoveCount())-1;
+                // 3.更新资讯统计信息
+                articleService.updateArticleSubCount(fileAttribution,articleEntity.getReadCount(),String.valueOf(readCount),articleEntity.getCommentCount());
+                return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
+            } else {
+                return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI,ResponseCode.FAIL);
+            }
+        } else {
+            return new BaseResponseEntity(ResponseCode.COOKIES_OUT_TIME, ResponseCode.UN_LOGIN);
+        }
+    }
+
+    /************************************************公用函数**************************************************/
+
     /**
      * 保存主题
      *
@@ -316,7 +395,7 @@ public class ArticleController {
      * @param allArticles               资讯编号
      * @param articleAllInfoEntities    资讯存储引用
      */
-    private void getArticleAllInfo(List<ArticleEntity> allArticles, List<ArticleAllInfoEntity> articleAllInfoEntities) {
+    private void getArticleAllInfo(List<ArticleEntity> allArticles, List<ArticleAllInfoEntity> articleAllInfoEntities,UserBaseInfoEntity requestUserInfo) {
         for (ArticleEntity single : allArticles) {
             UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByUserId(single.getUserId());
             List<FilePathEntity> filePathEntities = filePathService.findAllFilePathByFileAttribution(single.getFileAttribution());
@@ -326,6 +405,11 @@ public class ArticleController {
             articleAllInfoEntity.setFilePathEntities(filePathEntities);
             articleAllInfoEntity.setThemeEntities(themeEntities);
             articleAllInfoEntity.setUserBaseInfoEntity(userBaseInfoEntity);
+            // 1.判断用户是否收藏过该资讯
+            ArticleSubEntity isSub = articleService.checkArticleSub(single.getFileAttribution(),requestUserInfo!=null?requestUserInfo.getUserId():"");
+            if (isSub != null) {
+                articleAllInfoEntity.setLove(true);
+            }
             articleAllInfoEntities.add(articleAllInfoEntity);
         }
     }

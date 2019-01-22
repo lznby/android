@@ -9,19 +9,23 @@ public class ArticleAllInfoEntity {
     /**
      * 创建资讯者基本信息
      */
-    UserBaseInfoEntity userBaseInfoEntity;
+    private UserBaseInfoEntity userBaseInfoEntity;
     /**
      * 资讯基本信息
      */
-    ArticleEntity articleEntity;
+    private ArticleEntity articleEntity;
     /**
      * 资讯文件基本信息
      */
-    List<FilePathEntity> filePathEntities;
+    private List<FilePathEntity> filePathEntities;
     /**
      * 主题基本信息
      */
-    List<ThemeEntity> themeEntities;
+    private List<ThemeEntity> themeEntities;
+    /**
+     * 是否收藏
+     */
+    private boolean love;
 
     public UserBaseInfoEntity getUserBaseInfoEntity() {
         return userBaseInfoEntity;
@@ -53,5 +57,13 @@ public class ArticleAllInfoEntity {
 
     public void setThemeEntities(List<ThemeEntity> themeEntities) {
         this.themeEntities = themeEntities;
+    }
+
+    public boolean isLove() {
+        return love;
+    }
+
+    public void setLove(boolean love) {
+        this.love = love;
     }
 }

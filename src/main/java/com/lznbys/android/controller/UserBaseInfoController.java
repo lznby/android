@@ -30,27 +30,6 @@ public class UserBaseInfoController {
     @Autowired
     private ArticleThemeService articleThemeService;
 
-//    /**
-//     * 根据用户名或cookies查询用户基本资料
-//     *
-//     * @param userCookies                   用户cookies
-//     * @param userNickName                  用户昵称
-//     * @return                              成功:用户基本信息
-//     */
-//    @RequestMapping(method = RequestMethod.GET, value = "/getUserBaseInfo")
-//    public BaseResponseEntity findUserBaseInfo(@RequestHeader("userCookies") String userCookies, @Param("userNickName") String userNickName) {
-//
-//        //1.根据用户昵称或用户cookies查询用户基本信息
-//        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserBaseInfo(userNickName, userCookies);
-//
-//        //2.返回用户基本信息
-//        if (userBaseInfoEntity != null) {
-//            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, userBaseInfoEntity);
-//        } else {
-//            return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG, ResponseCode.SUCCESS);
-//        }
-//    }
-
     /**
      * 修改用户基本信息
      *
@@ -162,15 +141,20 @@ public class UserBaseInfoController {
                 articleAllInfoEntity.setFilePathEntities(filePathEntities);
                 articleAllInfoEntity.setArticleEntity(single);
                 articleAllInfoEntity.setThemeEntities(themeEntities);
+                // 判断查询者是否收藏
+                ArticleSubEntity isSub = articleService.checkArticleSub(single.getFileAttribution(), userBaseInfoByCookies != null ? userBaseInfoByCookies.getUserId() : "");
+                if (isSub != null) {
+                    articleAllInfoEntity.setLove(true);
+                }
                 articleAllInfoEntities.add(articleAllInfoEntity);
             }
             personalHomePageEntity.setArticleAllInfoEntities(articleAllInfoEntities);
             //4.查询用户关注与订阅数量
             UserFollowerSizeEntity userFollowerSizeEntity = userFollowerService.getFollowerSizeById(userId);
             personalHomePageEntity.setUserFollowerSizeEntity(userFollowerSizeEntity);
-            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,personalHomePageEntity);
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, personalHomePageEntity);
         } else {
-            return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);
+            return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG, ResponseCode.FAIL);
         }
     }
 }
