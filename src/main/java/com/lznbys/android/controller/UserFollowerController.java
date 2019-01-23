@@ -55,6 +55,14 @@ public class UserFollowerController {
                 userFollowerInsert.setUserId(userBaseInfoSearch.getUserId());
                 userFollowerInsert.setFollowId(userId);
                 boolean isInsert = userFollowerService.insertUserFollowerInfo(userFollowerInsert);
+
+                // 更新用户关注数
+                userBaseInfoSearch.setFollowCount(userBaseInfoSearch.getFollowCount()+1);
+                userBaseInfoService.updateUserCountInfo(userBaseInfoSearch);
+                // 更新被关注者粉丝数
+                userBaseInfoFollow.setFollowerCount(userBaseInfoFollow.getFollowerCount()+1);
+                userBaseInfoService.updateUserCountInfo(userBaseInfoFollow);
+
                 if (isInsert) {
                     return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
                 } else {
@@ -81,11 +89,21 @@ public class UserFollowerController {
                                          @Param("followId") String followId) {
         //1.根据userCookies检测账号是否合法
         UserBaseInfoEntity userBaseInfoSearch = userBaseInfoService.findUserInfoByCookies(userCookies);
-        //2.根据id检测关注记录是否存在
+        //2.根据userId检测关注对象是否存在
+        UserBaseInfoEntity userBaseInfoFollow = userBaseInfoService.findUserInfoByUserId(userId);
+        //3.根据id检测关注记录是否存在
         boolean isFollower = userFollowerService.isFollower(userId,followId);
         if (userBaseInfoSearch!=null) {
             if (isFollower) {
                 boolean isDelete = userFollowerService.deleteUserFollowerInfo(userBaseInfoSearch.getUserId(),followId);
+
+                // 更新用户关注数
+                userBaseInfoSearch.setFollowCount(userBaseInfoSearch.getFollowCount()-1);
+                userBaseInfoService.updateUserCountInfo(userBaseInfoSearch);
+                // 更新被关注者粉丝数
+                userBaseInfoFollow.setFollowerCount(userBaseInfoFollow.getFollowerCount()-1);
+                userBaseInfoService.updateUserCountInfo(userBaseInfoFollow);
+
                 if (isDelete) {
                     return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
                 } else {

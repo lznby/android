@@ -6,6 +6,8 @@ import com.lznbys.android.service.UserBaseInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 用户账号信息实现类
  */
@@ -44,17 +46,6 @@ public class UserBaseInfoServiceImpl implements UserBaseInfoService {
         return userBaseInfoDao.updateUserBaseInfo(userBaseInfoEntity,userCookies)>=1?userBaseInfoEntity:null;
     }
 
-//    /**
-//     * 查找用户基本信息
-//     * @param userNickName                  用户昵称
-//     * @param userCookies                   用户cookies
-//     * @return                              返回用户基本信息
-//     */
-//    @Override
-//    public UserBaseInfoEntity findUserBaseInfo(String userNickName, String userCookies) {
-//        return userBaseInfoDao.findUserBaseInfo(userNickName,userCookies);
-//    }
-
     /**
      * 1.查询 cookies 是否过期
      * 2.根据 cookies 查询用户基本信息
@@ -75,5 +66,27 @@ public class UserBaseInfoServiceImpl implements UserBaseInfoService {
      */
     public UserBaseInfoEntity findUserInfoByUserId(String userId) {
         return userBaseInfoDao.findUserInfoByUserId(userId);
+    }
+
+    /**
+     * 获取所有用户基本信息
+     *
+     * @return 所有用户基本信息
+     */
+    @Override
+    public List<UserBaseInfoEntity> findAllUserBaseInfo() {
+        return userBaseInfoDao.findAllUserBaseInfo();
+    }
+
+    /**
+     * 修改用户统计数据
+     *
+     * @param userBaseInfoEntity    用户统计数据
+     * @return  返回修改是否成功
+     */
+    @Override
+    public boolean updateUserCountInfo(UserBaseInfoEntity userBaseInfoEntity) {
+        int isUpdate = userBaseInfoDao.updateUserCountInfo(userBaseInfoEntity);
+        return (isUpdate > 0);
     }
 }

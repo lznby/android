@@ -111,6 +111,9 @@ public class ThemeController {
                     if (isInsert) {
                         // 更新主题关注数
                         themeService.updateThemeCount(themeEntity.getThemeId(),String.valueOf(themeEntity.getSubCount()+1));
+                        // 更新用户主题关注数
+                        userBaseInfoEntity.setThemeCount(userBaseInfoEntity.getThemeCount()+1);
+                        userBaseInfoService.updateUserCountInfo(userBaseInfoEntity);
                         return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
                     } else {
                         return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);
@@ -146,6 +149,9 @@ public class ThemeController {
                 boolean isDelete = themeService.deleteThemeSub(themeId,userBaseInfoEntity.getUserId());
                 if (isDelete) {
                     themeService.updateThemeCount(themeId,String.valueOf(themeEntity.getSubCount()-1));
+                    // 更新用户主题关注数
+                    userBaseInfoEntity.setThemeCount(userBaseInfoEntity.getThemeCount()-1);
+                    userBaseInfoService.updateUserCountInfo(userBaseInfoEntity);
                     return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
                 } else {
                     return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);

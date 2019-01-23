@@ -4,6 +4,8 @@ import com.lznbys.android.entity.UserAccountEntity;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 用户账号信息 CURD接口类
  *

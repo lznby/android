@@ -51,6 +51,9 @@ public class UserAccountController {
                 //3.设置用户基本信息表中的userId和userNikeName
                 userBaseInfoEntity.setUserId(userAccountSearcher.getUserId());
                 userBaseInfoEntity.setUserNickName(userAccountSearcher.getUserNickName());
+                userBaseInfoEntity.setUserBirthday("1970-1-1");
+                userBaseInfoEntity.setUserCounty("银河帝国");
+                userBaseInfoEntity.setUserCity("地球村");
                 //4.初始化该用户的基本信息
                 userBaseInfoService.insertUserBaseInfo(userBaseInfoEntity);
                 return new BaseResponseEntity<>(ResponseCode.ACCOUNT_CREATE_SUCCESS, ResponseCode.SUCCESS);

@@ -157,4 +157,29 @@ public class UserBaseInfoController {
             return new BaseResponseEntity(ResponseCode.REQUEST_FAIL_MSG, ResponseCode.FAIL);
         }
     }
+
+    /**
+     * 查询所有人基础信息,并返回是否关注 (发现-用户)
+     *
+     * @param userCookies   用户Cookies
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/getAllUserBaseInfo")
+    public BaseResponseEntity getAllUserBaseInfo(@RequestHeader("userCookies") String userCookies) {
+        //1.查询用户信息
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+        List<UserBaseInfoEntity> userBaseInfoEntities = userBaseInfoService.findAllUserBaseInfo();
+        if (userBaseInfoEntity != null) {
+            for (int i = 0; i < userBaseInfoEntities.size(); i++) {
+                boolean isFollow = userFollowerService.isFollower(userBaseInfoEntity.getUserId(),userBaseInfoEntities.get(i).getUserId());
+                if (isFollow) {
+                    userBaseInfoEntities.get(i).setFollow(true);
+                }
+            }
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, userBaseInfoEntities);
+        } else {
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, userBaseInfoEntities);
+        }
+    }
+
 }

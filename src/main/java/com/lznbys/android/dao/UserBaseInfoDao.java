@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
 /**
  * 用户基本信息 CURD接口类
  * <p>
@@ -47,20 +49,20 @@ public interface UserBaseInfoDao {
             "WHERE (app_user_account_info.userCookies = #{userCookies} and app_user_base_info.userId = app_user_account_info.userId);")
     Integer updateUserBaseInfo(@Param("userBaseInfoEntity") UserBaseInfoEntity userBaseInfoEntity, @Param("userCookies") String userCookies);
 
-//    /**
-//     * 查找用户基本信息（根据session和userId）
-//     * 1.参数为 userId 返回公开信息    userId name
-//     * 2.参数为 token  返回所有信息    token  String
-//     * 3.两者选择一个条件即可
-//     *
-//     * @param userNickName          用户昵称
-//     * @param userCookies           用户cookies
-//     * @return 返回查找到的用户基本信息:userNickName 返回公开的用户信息; userCookies:返回所有
-//     */
-//    @Select("SELECT * FROM app_user_base_info WHERE (app_user_base_info.userNickName = #{userNickName} OR app_user_base_info.userId = (SELECT app_user_account_info.userId FROM app_user_account_info WHERE app_user_account_info.userCookies = #{userCookies}))")
-//    @ResultType(UserBaseInfoEntity.class)
-//    UserBaseInfoEntity findUserBaseInfo(@Param("userNickName") String userNickName, @Param("userCookies") String userCookies);
-
+    /**
+     * 修改用户统计数据-关注、粉丝、主题
+     *
+     * @param userBaseInfoEntity    用户统计数据
+     * @return  返回修改数量
+     */
+    @Update("UPDATE app_user_base_info " +
+            "SET " +
+            "followCount = #{userBaseInfoEntity.followCount}," +
+            "followerCount = #{userBaseInfoEntity.followerCount}," +
+            "themeCount = #{userBaseInfoEntity.themeCount} " +
+            "WHERE (app_user_base_info.userId = #{userBaseInfoEntity.userId})"
+    )
+    Integer updateUserCountInfo(@Param("userBaseInfoEntity") UserBaseInfoEntity userBaseInfoEntity);
 
     /**
      * 1.查询 cookies 是否过期
@@ -86,4 +88,14 @@ public interface UserBaseInfoDao {
     /**
      * TODO 修改用户头像的接口
      */
+
+
+    /**
+     * 获取所有用户基本信息
+     *
+     * @return
+     */
+    @Select("SELECT * FROM app_user_base_info")
+    @ResultType(UserBaseInfoEntity.class)
+    List<UserBaseInfoEntity> findAllUserBaseInfo();
 }

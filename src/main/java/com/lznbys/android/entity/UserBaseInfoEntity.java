@@ -59,6 +59,22 @@ public class UserBaseInfoEntity {
      * 用户个性签名
      */
     private String userMotto;
+    /**
+     * 是否关注:非字符串
+     */
+    private boolean follow;
+    /**
+     * 用户关注数
+     */
+    private int followCount;
+    /**
+     * 用户粉丝数
+     */
+    private int followerCount;
+    /**
+     * 用户主题订阅数
+     */
+    private int themeCount;
 
     public String getUserId() {
         return userId;
@@ -162,5 +178,37 @@ public class UserBaseInfoEntity {
 
     public void setUserMotto(String userMotto) {
         this.userMotto = userMotto;
+    }
+
+    public boolean isFollow() {
+        return follow;
+    }
+
+    public void setFollow(boolean follow) {
+        this.follow = follow;
+    }
+
+    public int getFollowCount() {
+        return followCount;
+    }
+
+    public void setFollowCount(int followCount) {
+        this.followCount = followCount;
+    }
+
+    public int getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    public int getThemeCount() {
+        return themeCount;
+    }
+
+    public void setThemeCount(int themeCount) {
+        this.themeCount = themeCount;
     }
 }
