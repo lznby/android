@@ -1,7 +1,9 @@
 package com.lznbys.android.service;
 
+import com.lznbys.android.entity.ArticleEntity;
 import com.lznbys.android.entity.ArticleThemeEntity;
 import com.lznbys.android.entity.ThemeEntity;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -34,4 +36,12 @@ public interface ArticleThemeService {
      * @return
      */
     List<ThemeEntity> findThemeByFileAttribution(String fileAttribution);
+
+    /**
+     * 根据主题Id查询该主题下所有资讯
+     *
+     * @param themeId      主题Id
+     * @return             资讯信息
+     */
+    List<ArticleEntity> findAllArticleByThemeId(@Param("themeId") String themeId);
 }

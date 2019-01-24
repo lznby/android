@@ -2,11 +2,8 @@ package com.lznbys.android.controller;
 
 import com.lznbys.android.base.BaseResponseEntity;
 import com.lznbys.android.base.ResponseCode;
-import com.lznbys.android.entity.ThemeEntity;
-import com.lznbys.android.entity.ThemeSubEntity;
-import com.lznbys.android.entity.UserBaseInfoEntity;
-import com.lznbys.android.service.ThemeService;
-import com.lznbys.android.service.UserBaseInfoService;
+import com.lznbys.android.entity.*;
+import com.lznbys.android.service.*;
 import com.lznbys.android.utlis.FileUtils;
 import com.lznbys.android.utlis.TimeUtils;
 import org.apache.ibatis.annotations.Param;
@@ -32,6 +29,12 @@ public class ThemeController {
     private UserBaseInfoService userBaseInfoService;
     @Autowired
     private ThemeService themeService;
+    @Autowired
+    private ArticleThemeService articleThemeService;
+    @Autowired
+    private ArticleService articleService;
+    @Autowired
+    private FilePathService filePathService;
 
     /**
      * 新增主题信息
@@ -227,6 +230,54 @@ public class ThemeController {
         } else {
             List<ThemeEntity> themeEntities = themeService.findAllTheme();
             return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,themeEntities);
+        }
+    }
+
+    /**
+     * 获取主题资讯信息（帖子数量、关注数量）
+     *
+     * @param userCookies       用户Cookies
+     * @param themeId           主题Id
+     * @return                  主题首页数据
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/findArticleByThemeId")
+    public BaseResponseEntity<ThemeHomePageEntity> findArticleByThemeId(@RequestHeader("userCookies") String userCookies,
+                                                                      @Param("themeId") String themeId) {
+        // 主题信息
+        ThemeEntity themeEntity = themeService.findThemeById(themeId);
+        if (themeEntity != null) {
+            // 查询者信息
+            UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+            if (userBaseInfoEntity != null) {
+                ThemeSubEntity themeSubEntity = themeService.checkThemeSubByUserId(themeEntity.getThemeId(),userBaseInfoEntity.getUserId());
+                if (themeSubEntity!=null) {
+                    themeEntity.setFollowed(true);
+                }
+            }
+            // 查询到的资讯信息
+            List<ArticleEntity> articleEntities = articleThemeService.findAllArticleByThemeId(themeId);
+            List<ThemeEntity> themeEntities = new ArrayList<>();
+            themeEntities.add(themeEntity);
+            // 返回的数据
+            List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
+
+            for (ArticleEntity single : articleEntities) {
+                ArticleAllInfoEntity entity = new ArticleAllInfoEntity();
+                if (userBaseInfoEntity!=null) {
+                    ArticleSubEntity isSub = articleService.checkArticleSub(single.getFileAttribution(),userBaseInfoEntity.getUserId());
+                    if (isSub!=null) {
+                        entity.setLove(true);
+                    }
+                }
+                entity.setArticleEntity(single);
+                entity.setUserBaseInfoEntity(userBaseInfoService.findUserInfoByUserId(single.getUserId()));
+                entity.setFilePathEntities(filePathService.findAllFilePathByFileAttribution(single.getFileAttribution()));
+                entity.setThemeEntities(themeEntities);
+                articleAllInfoEntities.add(entity);
+            }
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS,new ThemeHomePageEntity(articleAllInfoEntities,themeEntity));
+        } else {
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_FAIL_MSG,ResponseCode.FAIL);
         }
     }
 

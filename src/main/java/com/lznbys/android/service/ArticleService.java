@@ -89,4 +89,12 @@ public interface ArticleService {
      */
     boolean updateArticleSubCount(String fileAttribution, String readCount, String loveCount, String commentCount);
 
+    /**
+     * 查询某个用户所有的收藏记录
+     *
+     * @param userId                被查询者Id
+     * @return                      收藏记录
+     */
+    List<ArticleSubEntity> getAllSubArticle(String userId);
+
 }

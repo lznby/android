@@ -1,6 +1,7 @@
 package com.lznbys.android.service.impl;
 
 import com.lznbys.android.dao.ArticleThemeDao;
+import com.lznbys.android.entity.ArticleEntity;
 import com.lznbys.android.entity.ArticleThemeEntity;
 import com.lznbys.android.entity.ThemeEntity;
 import com.lznbys.android.service.ArticleThemeService;
@@ -63,5 +64,16 @@ public class ArticleThemeServiceImpl implements ArticleThemeService {
     public List<ThemeEntity> findThemeByFileAttribution(String fileAttribution) {
         List<ThemeEntity> themeEntities = articleThemeDao.findThemeByFileAttribution(fileAttribution);
         return themeEntities;
+    }
+
+    /**
+     * 根据主题Id查询该主题下所有资讯
+     *
+     * @param themeId      主题Id
+     * @return
+     */
+    @Override
+    public List<ArticleEntity> findAllArticleByThemeId(String themeId) {
+        return articleThemeDao.findAllArticleByThemeId(themeId);
     }
 }

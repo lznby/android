@@ -137,4 +137,15 @@ public class ArticleServiceImpl implements ArticleService {
         int isUpdate = articleDao.updateArticleCount(fileAttribution,readCount,loveCount,commentCount);
         return (isUpdate > 0);
     }
+
+    /**
+     * 查询某个用户所有的收藏记录
+     *
+     * @param userId                被查询者Id
+     * @return                      订阅记录
+     */
+    @Override
+    public List<ArticleSubEntity> getAllSubArticle(String userId) {
+        return articleDao.getAllSubArticle(userId);
+    }
 }

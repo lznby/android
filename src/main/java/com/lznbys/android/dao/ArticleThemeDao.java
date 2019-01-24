@@ -1,5 +1,6 @@
 package com.lznbys.android.dao;
 
+import com.lznbys.android.entity.ArticleEntity;
 import com.lznbys.android.entity.ArticleThemeEntity;
 import com.lznbys.android.entity.ThemeEntity;
 import org.apache.ibatis.annotations.*;
@@ -45,4 +46,15 @@ public interface ArticleThemeDao {
     @Select("SELECT * FROM app_theme,app_theme_article WHERE (app_theme_article.fileAttribution = #{fileAttribution} and app_theme.themeId = app_theme_article.themeId);")
     @ResultType(ThemeEntity.class)
     List<ThemeEntity> findThemeByFileAttribution(@Param("fileAttribution") String fileAttribution);
+
+
+    /**
+     * 根据主题Id查询该主题所有资讯订阅信息
+     *
+     * @param themeId
+     * @return
+     */
+    @Select("SELECT * FROM app_article,app_theme_article WHERE (app_theme_article.themeId = #{themeId} AND app_theme_article.fileAttribution = app_article.fileAttribution)")
+    @ResultType(ArticleEntity.class)
+    List<ArticleEntity> findAllArticleByThemeId(@Param("themeId") String themeId);
 }

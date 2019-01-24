@@ -119,4 +119,14 @@ public interface ArticleDao {
                                @Param("loveCount") String loveCount,
                                @Param("commentCount") String commentCount);
 
+    /**
+     * 根据用户id查询用户收藏的所有资讯
+     *
+     * @param userId        被查询这用户Id
+     * @return              订阅记录
+     */
+    @Select("SELECT * FROM app_article_sub WHERE (app_article_sub.userId = #{userId});")
+    @ResultType(ArticleSubEntity.class)
+    List<ArticleSubEntity> getAllSubArticle(@Param("userId") String userId);
+
 }

@@ -44,7 +44,7 @@ public class ArticleController {
      * @param uploadingFiles 资讯文件
      * @param title          资讯标题(可缺省,暂时无用)
      * @param content        资讯文字内容
-     * @param themeIds       主题Id(json格式上传,可以有多个)
+     * @param themeId       主题Id(json格式上传,可以有多个)
      * @param type           资讯类型
      * @return
      */
@@ -53,7 +53,7 @@ public class ArticleController {
                                             @RequestParam("files") MultipartFile[] uploadingFiles,
                                             @Param("title") String title,
                                             @Param("content") String content,
-                                            @Param("themeId") String themeIds,
+                                            @Param("themeId") String themeId,
                                             @Param("type") String type) {
         // 用户判读是否登录,以及获取用户基本信息
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
@@ -115,10 +115,10 @@ public class ArticleController {
             if (!isCreate) {
                 return new BaseResponseEntity(ResponseCode.ARTICLE_SAVE_FAIL, ResponseCode.FAIL);
             }
-            if (!StringUtils.isEmpty(themeIds)) {
+            if (!StringUtils.isEmpty(themeId)) {
                 // 5. 保存所属主题可以有多个
                 Gson gson = new Gson();
-                List<String> themeList = gson.fromJson(themeIds, new TypeToken<List<String>>() {
+                List<String> themeList = gson.fromJson(themeId, new TypeToken<List<String>>() {
                 }.getType());
                 if (saveTheme(fileAttribution, themeList))
                     return new BaseResponseEntity(ResponseCode.HAVENT_THEME, ResponseCode.FAIL);
@@ -171,7 +171,7 @@ public class ArticleController {
     /**
      * 根据Id获取资讯详情(资讯内容)
      *
-     * @param fileAttribution       要查询的资讯Id
+     * @param fileAttribution 要查询的资讯Id
      * @return
      */
     @RequestMapping(method = RequestMethod.GET, value = "/getArticleByFileAttribution")
@@ -181,7 +181,7 @@ public class ArticleController {
         List<ArticleEntity> allArticles = new ArrayList<>();
         allArticles.add(articleService.findArticleByFileAttribution(fileAttribution));
         List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
-        getArticleAllInfo(allArticles, articleAllInfoEntities,userBaseInfoEntity);
+        getArticleAllInfo(allArticles, articleAllInfoEntities, userBaseInfoEntity);
         return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
 
@@ -196,7 +196,7 @@ public class ArticleController {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         List<ArticleEntity> allArticles = articleService.findAllArticle();
         List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
-        getArticleAllInfo(allArticles, articleAllInfoEntities,userBaseInfoEntity);
+        getArticleAllInfo(allArticles, articleAllInfoEntities, userBaseInfoEntity);
         return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
 
@@ -207,7 +207,7 @@ public class ArticleController {
      * @param files       OSS文件存储地址的Json
      * @param title       资讯标题(可以省略)
      * @param content     资讯正文内容
-     * @param themeIds    资讯所属主题
+     * @param themeId    资讯所属主题
      * @param type        资讯类型
      * @return
      */
@@ -216,7 +216,7 @@ public class ArticleController {
                                             @Param("files") String files,
                                             @Param("title") String title,
                                             @Param("content") String content,
-                                            @Param("themeId") String themeIds,
+                                            @Param("themeId") String themeId,
                                             @Param("type") String type) {
 
         // 用户判读是否登录,以及获取用户基本信息
@@ -272,10 +272,9 @@ public class ArticleController {
             if (!isCreate) {
                 return new BaseResponseEntity(ResponseCode.ARTICLE_SAVE_FAIL, ResponseCode.FAIL);
             }
-            if (!StringUtils.isEmpty(themeIds)) {
+            if (!StringUtils.isEmpty(themeId)) {
                 // 4. 保存所属主题可以有多个
-                List<String> themeList = gson.fromJson(themeIds, new TypeToken<List<String>>() {
-                }.getType());
+                List<String> themeList = gson.fromJson(themeId, new TypeToken<List<String>>() {}.getType());
                 if (saveTheme(fileAttribution, themeList))
                     return new BaseResponseEntity(ResponseCode.HAVENT_THEME, ResponseCode.FAIL);
             }
@@ -290,15 +289,13 @@ public class ArticleController {
     }
 
 
-
-
-    /************************************************资讯统计**************************************************/
+    /************************************************资讯收藏**************************************************/
 
     /**
      * 资讯收藏
      *
-     * @param userCookies           用户Cookies
-     * @param fileAttribution       资讯编号
+     * @param userCookies     用户Cookies
+     * @param fileAttribution 资讯编号
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/articleSub")
@@ -320,11 +317,11 @@ public class ArticleController {
                 boolean isInsert = articleService.insertArticleSub(articleSubEntity);
                 if (isInsert) {
                     // 3.更新资讯统计数值
-                    int readCount = Integer.valueOf(articleEntity.getLoveCount())+1;
-                    articleService.updateArticleSubCount(fileAttribution,articleEntity.getReadCount(),String.valueOf(readCount),articleEntity.getCommentCount());
-                    return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
+                    int readCount = Integer.valueOf(articleEntity.getLoveCount()) + 1;
+                    articleService.updateArticleSubCount(fileAttribution, articleEntity.getReadCount(), String.valueOf(readCount), articleEntity.getCommentCount());
+                    return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS);
                 } else {
-                    return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI,ResponseCode.FAIL);
+                    return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI, ResponseCode.FAIL);
                 }
             } else {
                 return new BaseResponseEntity(ResponseCode.ARTICLE_HAVE_NOT, ResponseCode.FAIL);
@@ -338,30 +335,61 @@ public class ArticleController {
     /**
      * 取消资讯收藏
      *
-     * @param userCookies           用户Cookies
-     * @param fileAttribution       资讯编号
+     * @param userCookies     用户Cookies
+     * @param fileAttribution 资讯编号
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/articleUnSub")
     public BaseResponseEntity articleUnSub(@RequestHeader("userCookies") String userCookies,
-                                         @Param("fileAttribution") String fileAttribution) {
+                                           @Param("fileAttribution") String fileAttribution) {
         // 1.判断用户是否登录
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
         if (userBaseInfoEntity != null) {
             // 2.删除资讯订阅信息
-            boolean isDelete = articleService.deleteArticleSub(userBaseInfoEntity.getUserId(),fileAttribution);
+            boolean isDelete = articleService.deleteArticleSub(userBaseInfoEntity.getUserId(), fileAttribution);
             if (isDelete) {
                 ArticleEntity articleEntity = articleService.findArticleByFileAttribution(fileAttribution);
-                int readCount = Integer.valueOf(articleEntity.getLoveCount())-1;
+                int readCount = Integer.valueOf(articleEntity.getLoveCount()) - 1;
                 // 3.更新资讯统计信息
-                articleService.updateArticleSubCount(fileAttribution,articleEntity.getReadCount(),String.valueOf(readCount),articleEntity.getCommentCount());
-                return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG,ResponseCode.SUCCESS);
+                articleService.updateArticleSubCount(fileAttribution, articleEntity.getReadCount(), String.valueOf(readCount), articleEntity.getCommentCount());
+                return new BaseResponseEntity(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS);
             } else {
-                return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI,ResponseCode.FAIL);
+                return new BaseResponseEntity(ResponseCode.FIAL_WAIT_A_MINI, ResponseCode.FAIL);
             }
         } else {
             return new BaseResponseEntity(ResponseCode.COOKIES_OUT_TIME, ResponseCode.UN_LOGIN);
         }
+    }
+
+
+    /**
+     * 查询用户所有收藏的资讯信息
+     *
+     * @param userCookies 用户Cookies
+     * @param userId      被查者Id
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/getAllSubArticle")
+    public BaseResponseEntity<List<ArticleAllInfoEntity>> getAllSubArticle(@RequestHeader("userCookies") String userCookies,
+                                               @Param("userId") String userId) {
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+
+        List<ArticleSubEntity> allSubArticle = articleService.getAllSubArticle(userId);
+        // 1.存放返回的资讯数据
+        List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
+
+        for (ArticleSubEntity single : allSubArticle) {
+            ArticleAllInfoEntity entity = new ArticleAllInfoEntity();
+            if (userBaseInfoEntity != null) {
+                entity.setLove(articleService.checkArticleSub(single.getFileAttribution(),userBaseInfoEntity.getUserId())!=null);
+            }
+            entity.setThemeEntities(articleThemeService.findThemeByFileAttribution(single.getFileAttribution()));
+            entity.setFilePathEntities(filePathService.findAllFilePathByFileAttribution(single.getFileAttribution()));
+            entity.setArticleEntity(articleService.findArticleByFileAttribution(single.getFileAttribution()));
+            entity.setUserBaseInfoEntity(userBaseInfoService.findUserInfoByUserId(entity.getArticleEntity().getUserId()));
+            articleAllInfoEntities.add(entity);
+        }
+        return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS,articleAllInfoEntities);
     }
 
     /************************************************公用函数**************************************************/
@@ -392,10 +420,10 @@ public class ArticleController {
     /**
      * 获取所有资讯信息
      *
-     * @param allArticles               资讯编号
-     * @param articleAllInfoEntities    资讯存储引用
+     * @param allArticles            资讯编号
+     * @param articleAllInfoEntities 资讯存储引用
      */
-    private void getArticleAllInfo(List<ArticleEntity> allArticles, List<ArticleAllInfoEntity> articleAllInfoEntities,UserBaseInfoEntity requestUserInfo) {
+    private void getArticleAllInfo(List<ArticleEntity> allArticles, List<ArticleAllInfoEntity> articleAllInfoEntities, UserBaseInfoEntity requestUserInfo) {
         for (ArticleEntity single : allArticles) {
             UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByUserId(single.getUserId());
             List<FilePathEntity> filePathEntities = filePathService.findAllFilePathByFileAttribution(single.getFileAttribution());
@@ -406,7 +434,7 @@ public class ArticleController {
             articleAllInfoEntity.setThemeEntities(themeEntities);
             articleAllInfoEntity.setUserBaseInfoEntity(userBaseInfoEntity);
             // 1.判断用户是否收藏过该资讯
-            ArticleSubEntity isSub = articleService.checkArticleSub(single.getFileAttribution(),requestUserInfo!=null?requestUserInfo.getUserId():"");
+            ArticleSubEntity isSub = articleService.checkArticleSub(single.getFileAttribution(), requestUserInfo != null ? requestUserInfo.getUserId() : "");
             if (isSub != null) {
                 articleAllInfoEntity.setLove(true);
             }
