@@ -2,6 +2,7 @@ package com.lznbys.android.service;
 
 import com.lznbys.android.entity.ArticleEntity;
 import com.lznbys.android.entity.ArticleSubEntity;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -96,5 +97,21 @@ public interface ArticleService {
      * @return                      收藏记录
      */
     List<ArticleSubEntity> getAllSubArticle(String userId);
+
+    /**
+     * 根据用户Id查询,该用户关注的用户及主题下的资讯信息
+     *
+     * @param userId                查询用户Id
+     * @return                      资讯信息
+     */
+    List<ArticleEntity> getSubArticleByUserId(String userId);
+
+    /**
+     * 轮播图资讯,搜索结果前n条,按收藏数
+     *
+     * @param size                  查询轮播图数据数量
+     * @return                      轮播图资讯信息
+     */
+    List<ArticleEntity> getBannerArticle(int size);
 
 }

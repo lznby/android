@@ -43,7 +43,7 @@ public interface ArticleDao {
      * @param userId    用户Id
      * @return
      */
-    @Select("SELECT * FROM app_article WHERE app_article.userId = #{userId}")
+    @Select("SELECT * FROM app_article WHERE app_article.userId = #{userId} ORDER BY time DESC")
     @ResultType(ArticleEntity.class)
     List<ArticleEntity> findArticleByUserId(@Param("userId") String userId);
 
@@ -125,8 +125,36 @@ public interface ArticleDao {
      * @param userId        被查询这用户Id
      * @return              订阅记录
      */
-    @Select("SELECT * FROM app_article_sub WHERE (app_article_sub.userId = #{userId});")
+    @Select("SELECT * FROM app_article_sub WHERE (app_article_sub.userId = #{userId}) ORDER BY TIME DESC;")
     @ResultType(ArticleSubEntity.class)
     List<ArticleSubEntity> getAllSubArticle(@Param("userId") String userId);
+
+    /**
+     * 根据用户Id查询,该用户关注的用户及主题下的资讯信息
+     *
+     * select * from app_article where userId in (select followId from app_user_follower_info where userId = '1020')
+     * or fileAttribution in (select fileAttribution from app_theme_article where themeId in
+     * (select themeId from app_theme_sub where userId = '1020'));
+     *
+     * @param userId    查询用户的Id
+     * @return
+     */
+    @Select("SELECT * FROM app_article WHERE userId IN (SELECT followId FROM app_user_follower_info WHERE userId = #{userId})" +
+            " OR fileAttribution IN (SELECT fileAttribution FROM app_theme_article WHERE " +
+            "themeId IN (SELECT themeId FROM app_theme_sub WHERE userId = #{userId}));")
+    @ResultType(ArticleEntity.class)
+    List<ArticleEntity> getSubArticleByUserId(@Param("userId") String userId);
+
+
+    /**
+     * 轮播图资讯,搜索结果前n条，按收藏数
+     *
+     * @param size  轮播图数量
+     * @return      返回资讯
+     */
+    @Select("SELECT * FROM app_article ORDER BY loveCount DESC LIMIT #{size}")
+    @ResultType(ArticleEntity.class)
+    List<ArticleEntity> getBannerArticle(@Param("size") int size);
+
 
 }

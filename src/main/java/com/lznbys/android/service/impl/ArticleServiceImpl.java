@@ -148,4 +148,27 @@ public class ArticleServiceImpl implements ArticleService {
     public List<ArticleSubEntity> getAllSubArticle(String userId) {
         return articleDao.getAllSubArticle(userId);
     }
+
+
+    /**
+     * 根据用户Id查询,该用户关注的用户及主题下的资讯信息
+     *
+     * @param userId                查询用户Id
+     * @return                      资讯信息
+     */
+    @Override
+    public List<ArticleEntity> getSubArticleByUserId(String userId) {
+        return articleDao.getSubArticleByUserId(userId);
+    }
+
+    /**
+     * 轮播图资讯,搜索结果前n条,按收藏数
+     *
+     * @param size                  查询轮播图数据数量
+     * @return                      轮播图资讯
+     */
+    @Override
+    public List<ArticleEntity> getBannerArticle(int size) {
+        return articleDao.getBannerArticle(size);
+    }
 }

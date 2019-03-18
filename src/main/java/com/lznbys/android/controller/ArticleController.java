@@ -36,6 +36,12 @@ public class ArticleController {
     private FilePathService filePathService;
     @Autowired
     private ArticleThemeService articleThemeService;
+    @Autowired
+    private UserFollowerService userFollowerService;
+    @Autowired
+    private ThemeService themeService;
+    @Autowired
+    private CommentService commentService;
 
     /**
      * 新建资讯接口
@@ -44,7 +50,7 @@ public class ArticleController {
      * @param uploadingFiles 资讯文件
      * @param title          资讯标题(可缺省,暂时无用)
      * @param content        资讯文字内容
-     * @param themeId       主题Id(json格式上传,可以有多个)
+     * @param themeId        主题Id(json格式上传,可以有多个)
      * @param type           资讯类型
      * @return
      */
@@ -182,6 +188,22 @@ public class ArticleController {
         allArticles.add(articleService.findArticleByFileAttribution(fileAttribution));
         List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
         getArticleAllInfo(allArticles, articleAllInfoEntities, userBaseInfoEntity);
+        if (articleAllInfoEntities.size() > 0) {
+            // 插入评论
+            List<CommentEntity> commentEntities = commentService.findAllCommentByFileAttribution(fileAttribution);
+            for (int i = 0; i < commentEntities.size(); i++) {
+                UserBaseInfoEntity commenter = userBaseInfoService.findUserInfoByUserId(commentEntities.get(i).getUserId() + "");
+                UserBaseInfoEntity toCommenter = userBaseInfoService.findUserInfoByUserId(commentEntities.get(i).getToUserId() + "");
+                if (commenter!=null) {
+                    commentEntities.get(i).setUserNickname(commenter.getUserNickName());
+                    commentEntities.get(i).setUserHeaderUrl(commenter.getUserHeaderUrl());
+                }
+                if (toCommenter!=null) {
+                    commentEntities.get(i).setToUserNickname(toCommenter.getUserNickName());
+                }
+            }
+            articleAllInfoEntities.get(0).setCommentEntities(commentEntities);
+        }
         return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
 
@@ -207,7 +229,7 @@ public class ArticleController {
      * @param files       OSS文件存储地址的Json
      * @param title       资讯标题(可以省略)
      * @param content     资讯正文内容
-     * @param themeId    资讯所属主题
+     * @param themeId     资讯所属主题
      * @param type        资讯类型
      * @return
      */
@@ -274,7 +296,8 @@ public class ArticleController {
             }
             if (!StringUtils.isEmpty(themeId)) {
                 // 4. 保存所属主题可以有多个
-                List<String> themeList = gson.fromJson(themeId, new TypeToken<List<String>>() {}.getType());
+                List<String> themeList = gson.fromJson(themeId, new TypeToken<List<String>>() {
+                }.getType());
                 if (saveTheme(fileAttribution, themeList))
                     return new BaseResponseEntity(ResponseCode.HAVENT_THEME, ResponseCode.FAIL);
             }
@@ -371,7 +394,7 @@ public class ArticleController {
      */
     @RequestMapping(method = RequestMethod.GET, value = "/getAllSubArticle")
     public BaseResponseEntity<List<ArticleAllInfoEntity>> getAllSubArticle(@RequestHeader("userCookies") String userCookies,
-                                               @Param("userId") String userId) {
+                                                                           @Param("userId") String userId) {
         UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
 
         List<ArticleSubEntity> allSubArticle = articleService.getAllSubArticle(userId);
@@ -381,7 +404,7 @@ public class ArticleController {
         for (ArticleSubEntity single : allSubArticle) {
             ArticleAllInfoEntity entity = new ArticleAllInfoEntity();
             if (userBaseInfoEntity != null) {
-                entity.setLove(articleService.checkArticleSub(single.getFileAttribution(),userBaseInfoEntity.getUserId())!=null);
+                entity.setLove(articleService.checkArticleSub(single.getFileAttribution(), userBaseInfoEntity.getUserId()) != null);
             }
             entity.setThemeEntities(articleThemeService.findThemeByFileAttribution(single.getFileAttribution()));
             entity.setFilePathEntities(filePathService.findAllFilePathByFileAttribution(single.getFileAttribution()));
@@ -389,8 +412,120 @@ public class ArticleController {
             entity.setUserBaseInfoEntity(userBaseInfoService.findUserInfoByUserId(entity.getArticleEntity().getUserId()));
             articleAllInfoEntities.add(entity);
         }
-        return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS,articleAllInfoEntities);
+        return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
     }
+
+    /**
+     * 用户评论
+     *
+     * @param userCookies
+     * @param comment
+     * @param toUserId
+     * @param fileAttribution
+     * @param toCommentId
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/createComment")
+    public BaseResponseEntity createComment(@RequestHeader("userCookies") String userCookies,
+                                            @Param("comment") String comment,
+                                            @Param("toUserId") String toUserId,
+                                            @Param("fileAttribution") String fileAttribution,
+                                            @Param("toCommentId") String toCommentId) {
+
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+
+        String createTime = TimeUtils.getNowTime();
+
+        if (userBaseInfoEntity == null) {
+            return new BaseResponseEntity(ResponseCode.COOKIES_OUT_TIME, ResponseCode.UN_LOGIN);
+        }
+
+        // 存储的评论信息
+        CommentEntity entity = new CommentEntity();
+        entity.setComment(comment);
+        entity.setTime(createTime);
+        entity.setToUserId(Integer.valueOf(toUserId));
+        entity.setToCommentId(Integer.valueOf(toCommentId));
+        entity.setFileAttribution(fileAttribution);
+        entity.setUserId(Integer.valueOf(userBaseInfoEntity.getUserId()));
+
+        boolean isComment = commentService.createComment(entity);
+
+        if (isComment) {
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS);
+        } else {
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_FAIL_MSG, ResponseCode.FAIL);
+        }
+
+    }
+
+    /************************************************用户订阅**************************************************/
+
+    /**
+     * 用户订阅页接口
+     * 1. 查询用户所有关注的人以及主题。
+     * 2. 根据用户关注的人与主题查询出所有资讯信息。
+     *
+     * @param userCookies 用户Cookies
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/getUserSubInfo")
+    public BaseResponseEntity getUserSubInfo(@RequestHeader("userCookies") String userCookies) {
+
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+        if (userBaseInfoEntity != null) {
+            // 返回的数据
+            List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
+
+            List<ArticleEntity> articleEntities = articleService.getSubArticleByUserId(userBaseInfoEntity.getUserId());
+
+            for (ArticleEntity single : articleEntities) {
+                ArticleAllInfoEntity entity = new ArticleAllInfoEntity();
+                entity.setArticleEntity(single);
+                entity.setThemeEntities(articleThemeService.findThemeByFileAttribution(single.getFileAttribution()));
+                entity.setUserBaseInfoEntity(userBaseInfoService.findUserInfoByUserId(single.getUserId()));
+                entity.setFilePathEntities(filePathService.findAllFilePathByFileAttribution(single.getFileAttribution()));
+                entity.setLove(articleService.checkArticleSub(single.getFileAttribution(), userBaseInfoEntity.getUserId()) != null);
+                articleAllInfoEntities.add(entity);
+            }
+            return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
+        } else {
+            return new BaseResponseEntity(ResponseCode.COOKIES_OUT_TIME, ResponseCode.UN_LOGIN);
+        }
+    }
+
+    /************************************************引用首页**************************************************/
+
+    /**
+     * 轮播图资讯
+     *
+     * @param userCookies 用户Cookies
+     * @param size        轮播图数量
+     * @return 轮播图资讯
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/getBannerArticle")
+    public BaseResponseEntity<List<ArticleAllInfoEntity>> getBannerArticle(@RequestHeader("userCookies") String userCookies,
+                                                                           @Param("size") int size) {
+        if (size <= 0) {
+            size = 3;
+        }
+        UserBaseInfoEntity userBaseInfoEntity = userBaseInfoService.findUserInfoByCookies(userCookies);
+        List<ArticleAllInfoEntity> articleAllInfoEntities = new ArrayList<>();
+        List<ArticleEntity> articleEntities = articleService.getBannerArticle(size);
+        for (ArticleEntity single : articleEntities) {
+            ArticleAllInfoEntity entity = new ArticleAllInfoEntity();
+            if (userBaseInfoEntity != null) {
+                entity.setLove(articleService.checkArticleSub(single.getFileAttribution(), userBaseInfoEntity.getUserId()) != null);
+            }
+            entity.setUserBaseInfoEntity(userBaseInfoService.findUserInfoByUserId(single.getUserId()));
+            entity.setFilePathEntities(filePathService.findAllFilePathByFileAttribution(single.getFileAttribution()));
+            entity.setThemeEntities(articleThemeService.findThemeByFileAttribution(single.getFileAttribution()));
+            entity.setArticleEntity(single);
+            articleAllInfoEntities.add(entity);
+        }
+        return new BaseResponseEntity<>(ResponseCode.REQUEST_SUCCESS_MSG, ResponseCode.SUCCESS, articleAllInfoEntities);
+    }
+
 
     /************************************************公用函数**************************************************/
 
